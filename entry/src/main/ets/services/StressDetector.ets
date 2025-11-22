@@ -239,19 +239,17 @@ class StressDetectorClass {
     // Alert user immediately
     await BreathingGuide.alertStress();
 
-    // Prepare sensor snapshot for LLM analysis
+    // Log sensor snapshot (for future LLM use)
     const snapshot: SensorSnapshot = {
       heartRate: this.heartRate,
       heartRateBaseline: Math.round(this.getBaseline()),
       isMoving: this.isMoving(),
       accelMagnitude: this.accelMagnitude
     };
+    await BreathingGuide.getBreathingPatternFromLLM(snapshot);
 
-    // Get personalized breathing pattern (TODO: from LLM)
-    const pattern = await BreathingGuide.getBreathingPatternFromLLM(snapshot);
-
-    // Start guided breathing with vibration feedback
-    BreathingGuide.startGuidedBreathing(pattern);
+    // Start fixed 4-7-8 breathing guide
+    BreathingGuide.start();
   }
 
   // Mark as exercise (called from motion/GPS check)
