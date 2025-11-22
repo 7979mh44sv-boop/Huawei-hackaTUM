@@ -264,6 +264,14 @@ class StressDetectorClass {
     this.updateState('STRESS');
   }
 
+  // Test/Demo: Force trigger stress and breathing guide
+  async testStress(): Promise<void> {
+    hilog.info(DOMAIN, TAG, 'TEST: Forcing stress state for demo');
+    this.heartRate = 110;  // Simulate elevated HR
+    this.updateState('STRESS');
+    await this.triggerBreathingGuide();
+  }
+
   // Reset to normal
   reset(): void {
     this.updateState('NORMAL');

@@ -56,6 +56,12 @@ struct Index {
     this.statusMessage = 'Tap Start to begin';
   }
 
+  // Test button - force trigger stress for demo
+  private async triggerTestStress(): Promise<void> {
+    this.statusMessage = 'Testing...';
+    await StressDetector.testStress();
+  }
+
   build() {
     Column() {
       // Heart rate display - large and centered
@@ -82,19 +88,33 @@ struct Index {
         .fontColor(this.getStateColor())
         .margin({ bottom: 16 })
 
-      // Start/Stop button
-      Button(this.isMonitoring ? 'Stop' : 'Start')
-        .width(80)
-        .height(36)
-        .fontSize(14)
-        .backgroundColor(this.isMonitoring ? '#666666' : '#4CAF50')
-        .onClick(() => {
-          if (this.isMonitoring) {
-            this.stopMonitoring();
-          } else {
-            this.startMonitoring();
-          }
-        })
+      // Buttons row
+      Row() {
+        // Start/Stop button
+        Button(this.isMonitoring ? 'Stop' : 'Start')
+          .width(70)
+          .height(32)
+          .fontSize(12)
+          .backgroundColor(this.isMonitoring ? '#666666' : '#4CAF50')
+          .onClick(() => {
+            if (this.isMonitoring) {
+              this.stopMonitoring();
+            } else {
+              this.startMonitoring();
+            }
+          })
+
+        // Test button - for demo
+        Button('Test')
+          .width(50)
+          .height(32)
+          .fontSize(12)
+          .backgroundColor('#FF9800')
+          .margin({ left: 8 })
+          .onClick(() => {
+            this.triggerTestStress();
+          })
+      }
     }
     .width('100%')
     .height('100%')
