@@ -1,6 +1,7 @@
 import { sensor } from '@kit.SensorServiceKit';
 import { geoLocationManager } from '@kit.LocationKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
+import { BreathingGuide, SensorSnapshot } from './BreathingGuide';
 
 const DOMAIN = 0x0000;
 const TAG = 'StressDetector';
@@ -228,6 +229,29 @@ class StressDetectorClass {
     // Not moving + high HR = stress
     hilog.info(DOMAIN, TAG, 'Not moving + high HR -> STRESS');
     this.updateState('STRESS');
+
+    // Trigger breathing guide
+    this.triggerBreathingGuide();
+  }
+
+  // Trigger LLM-driven breathing guidance
+  private async triggerBreathingGuide(): Promise<void> {
+    // Alert user immediately
+    await BreathingGuide.alertStress();
+
+    // Prepare sensor snapshot for LLM analysis
+    const snapshot: SensorSnapshot = {
+      heartRate: this.heartRate,
+      heartRateBaseline: Math.round(this.getBaseline()),
+      isMoving: this.isMoving(),
+      accelMagnitude: this.accelMagnitude
+    };
+
+    // Get personalized breathing pattern (TODO: from LLM)
+    const pattern = await BreathingGuide.getBreathingPatternFromLLM(snapshot);
+
+    // Start guided breathing with vibration feedback
+    BreathingGuide.startGuidedBreathing(pattern);
   }
 
   // Mark as exercise (called from motion/GPS check)
