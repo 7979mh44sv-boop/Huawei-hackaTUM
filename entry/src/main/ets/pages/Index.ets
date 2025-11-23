@@ -1,5 +1,6 @@
 import { StressDetector, StressState } from '../services/StressDetector';
 import { BreathingGuide } from '../services/BreathingGuide';
+import vibrator from '@system.vibrator';
 
 @Entry
 @Component
@@ -26,6 +27,43 @@ struct Index {
   private r: number = 74;
   private g: number = 223;
   private b: number = 255;
+
+  // === Vibration Methods ===
+  // Single short vibration
+  private vibrateOnce(): void {
+    try {
+      vibrator.vibrate();
+    } catch (e) {
+      console.info('[Vibrator] Error: ' + JSON.stringify(e));
+    }
+  }
+
+  // Pattern vibration: array of delays between buzzes
+  private vibratePattern(delays: number[]): void {
+    let time = 0;
+    for (let i = 0; i < delays.length; i++) {
+      time += delays[i];
+      setTimeout(() => {
+        this.vibrateOnce();
+      }, time);
+    }
+  }
+
+  // Vibration patterns for each breathing phase
+  private vibrateInhale(): void {
+    // Single pulse: "Start breathing in"
+    this.vibrateOnce();
+  }
+
+  private vibrateHold(): void {
+    // Double pulse: "Hold" (buzz-pause-buzz)
+    this.vibratePattern([0, 200]);
+  }
+
+  private vibrateExhale(): void {
+    // Triple gentle pulse: "Slowly breathe out"
+    this.vibratePattern([0, 300, 300]);
+  }
 
   // Colors for each state
   private getStateColor(): ResourceColor {
@@ -75,10 +113,13 @@ struct Index {
     this.g = 223;
     this.b = 255;
 
+    // Vibrate at start of first inhale
+    this.vibrateInhale();
+
     this.breathTimerId = setInterval(() => {
       this.breathTimerStep++;
 
-      // Phase logic
+      // Phase logic with vibration on transitions
       if (this.breathPhase === 'inhale') {
         this.circleSize += 1.6;
         this.circleOpacity += 0.004;
@@ -88,12 +129,14 @@ struct Index {
         if (this.breathTimerStep >= 50) {
           this.breathPhase = 'hold';
           this.breathTimerStep = 0;
+          this.vibrateHold();  // Vibrate: transition to HOLD
         }
       } else if (this.breathPhase === 'hold') {
         this.breathLabel = 'Hold';
         if (this.breathTimerStep >= 70) {
           this.breathPhase = 'exhale';
           this.breathTimerStep = 0;
+          this.vibrateExhale();  // Vibrate: transition to EXHALE
         }
       } else if (this.breathPhase === 'exhale') {
         this.circleSize -= 1.0;
@@ -104,6 +147,7 @@ struct Index {
         if (this.breathTimerStep >= 80) {
           this.breathPhase = 'inhale';
           this.breathTimerStep = 0;
+          this.vibrateInhale();  // Vibrate: transition to INHALE
         }
       }
 
